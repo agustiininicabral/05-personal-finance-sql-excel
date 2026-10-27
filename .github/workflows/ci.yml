@@ -1,0 +1,30 @@
+name: Personal Finance Data Quality
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Validate transactions
+        run: python scripts/validate_transactions.py --out reports/finance_quality_report.json
+      - name: Upload finance quality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: finance-quality-report
+          path: reports/finance_quality_report.json
+          if-no-files-found: error
+          retention-days: 7
